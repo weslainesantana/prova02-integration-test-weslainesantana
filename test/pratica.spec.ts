@@ -3,18 +3,16 @@ import { StatusCodes } from 'http-status-codes';
 import { SimpleReporter } from '../simple-reporter';
 import { faker } from '@faker-js/faker';
 
-describe('practice software testing', () => {
+describe('Aula Pratica 01', () => {
   const p = pactum;
   const rep = SimpleReporter;
   const baseUrl = 'https://api.practicesoftwaretesting.com';
-
   const email = faker.internet.email();
   const senha = faker.internet.password({ length: 10, prefix: 'Aa@1' });
 
   let token = '';
-  let brandId = '';
 
-  p.request.setDefaultTimeout(60000);
+  p.request.setDefaultTimeout(120000);
 
   beforeAll(async () => {
     p.reporter.add(rep);
@@ -54,61 +52,50 @@ describe('practice software testing', () => {
       .returns('access_token');
   });
 
-  describe('Brands', () => {
-    it('Cadastrar nova Brand', async () => {
-      brandId = await p
-        .spec()
-        .withHeaders({ Authorization: `Bearer ${token}` })
-        .post(`${baseUrl}/brands`)
-        .withJson({
-          name: faker.number.int() + '',
-          slug: faker.number.int() + ''
-        })
-        .expectStatus(StatusCodes.CREATED)
-        .returns('id');
-    });
-
-    it('Brand não processada', async () => {
+  describe('Invoices', () => {
+    it('Invoice Not Found', async () => {
       await p
         .spec()
         .withHeaders({ Authorization: `Bearer ${token}` })
-        .post(`${baseUrl}/brands`)
+        .post(`${baseUrl}/invoices`)
         .withJson({
-          name: '@',
-          slug: '#'
+          billing_street: faker.location.streetAddress(),
+          billing_city: faker.location.city(),
+          billing_state: faker.location.state(),
+          billing_country: faker.location.country(),
+          billing_postal_code: faker.location.zipCode(),
+          payment_method: 'bank-transfer',
+          cart_id: faker.finance.creditCardNumber(),
+          payment_details: {
+            bank_name: faker.company.name(),
+            account_name: faker.finance.accountName(),
+            account_number: faker.finance.accountNumber()
+          }
+        })
+        .expectStatus(StatusCodes.NOT_FOUND);
+    });
+
+    it('Invoice metodo não permitido', async () => {
+      await p
+        .spec()
+        .withHeaders({ Authorization: `Bearer ${token}` })
+        .delete(`${baseUrl}/invoices`)
+        .expectStatus(StatusCodes.METHOD_NOT_ALLOWED);
+    });
+
+    it('Invoice metodo não permitido', async () => {
+      await p
+        .spec()
+        .withHeaders({ Authorization: `Bearer ${token}` })
+        .post(`${baseUrl}/invoices`)
+        .withJson({
+          billing_street: faker.location.streetAddress(),
+          billing_city: faker.location.city(),
+          billing_state: faker.location.state(),
+          billing_country: faker.location.country(),
+          billing_postal_code: faker.location.zipCode()
         })
         .expectStatus(StatusCodes.UNPROCESSABLE_ENTITY);
-    });
-
-    it('Editar nova Brand', async () => {
-      await p
-        .spec()
-        .withHeaders({ Authorization: `Bearer ${token}` })
-        .put(`${baseUrl}/brands/${brandId}`)
-        .withJson({
-          name: faker.number.int() + 'editado',
-          slug: faker.number.int() + 'editado'
-        })
-        .expectStatus(StatusCodes.OK);
-    });
-
-    it('buscar nova Brand editada', async () => {
-      await p
-        .spec()
-        .withHeaders({ Authorization: `Bearer ${token}` })
-        .get(`${baseUrl}/brands/${brandId}`)
-        .expectStatus(StatusCodes.OK);
-    });
-
-    it('buscar Brand editada pelo search', async () => {
-      await p
-        .spec()
-        .withHeaders({ Authorization: `Bearer ${token}` })
-        .get(`${baseUrl}/brands/search`)
-        .withQueryParams({
-          q: 'editado'
-        })
-        .expectStatus(StatusCodes.OK);
     });
   });
 });

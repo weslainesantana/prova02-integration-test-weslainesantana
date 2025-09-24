@@ -69,7 +69,7 @@ describe('Echo validation', () => {
         .expectStatus(StatusCodes.BAD_REQUEST);
     });
 
-    it('Should be OK', async () => {
+    it('Should be a not found', async () => {
       await p.spec().get(`${baseUrl}/status/200`).expectStatus(StatusCodes.OK);
     });
   });
