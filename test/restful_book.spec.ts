@@ -31,7 +31,6 @@ describe('Restful-booker API - CRUD completo e robusto', () => {
     
     token = res.json.token;
     expect(token).toBeDefined();
-    console.log('✅ Token obtido:', token);
   });
 
   // Teste 3: Busca lista de reservas e obtém um ID válido para os próximos testes
@@ -45,11 +44,9 @@ describe('Restful-booker API - CRUD completo e robusto', () => {
         minItems: 1
       });
     
-    // Pega o primeiro ID disponível da lista
     bookingId = res.json[0].bookingid;
     expect(bookingId).toBeDefined();
     expect(typeof bookingId).toBe('number');
-    console.log('✅ ID de reserva existente obtido:', bookingId);
   });
 
   // Teste 4: Busca detalhes completos de uma reserva específica por ID (READ)
@@ -71,16 +68,11 @@ describe('Restful-booker API - CRUD completo e robusto', () => {
         expect(res.json).toHaveProperty('totalprice');
         expect(res.json).toHaveProperty('depositpaid');
         expect(res.json).toHaveProperty('bookingdates');
-        console.log('✅ Reserva encontrada:', bookingId);
-        console.log('   Nome:', res.json.firstname, res.json.lastname);
       } else if (res.statusCode === 418) {
-        console.warn('⚠️ API retornou 418 no GET, mas teste continua');
-        // Aceita o 418 como comportamento esperado da API instável
         expect(res.statusCode).toBe(418);
       }
     } catch (err) {
-      console.warn('⚠️ Erro ao buscar reserva (API instável), continuando testes');
-      // Se falhar completamente, apenas loga e continua
+      // Erro ignorado devido à instabilidade da API
     }
   });
 
@@ -111,18 +103,14 @@ describe('Restful-booker API - CRUD completo e robusto', () => {
 
       if (res.statusCode === 200) {
         createdBookingId = res.json.bookingid;
-        bookingId = createdBookingId; // Atualiza para usar o novo ID
-        console.log('✅ Nova reserva criada com ID:', createdBookingId);
+        bookingId = createdBookingId;
       } else if (res.statusCode === 418) {
-        console.warn('⚠️ API retornou 418, usando ID existente para testes');
         // Continua usando o bookingId existente
       }
     } catch (err) {
-      console.warn('⚠️ Falha ao criar reserva (API instável), usando ID existente');
       // Continua com o bookingId existente
     }
 
-    // Valida que temos um ID para trabalhar
     expect(bookingId).toBeDefined();
   });
 
@@ -156,8 +144,6 @@ describe('Restful-booker API - CRUD completo e robusto', () => {
         firstname: 'João',
         lastname: 'Silva'
       });
-    
-    console.log('✅ Reserva atualizada (PUT) - ID:', bookingId);
   });
 
   // Teste 7: Atualiza apenas campos específicos de uma reserva (UPDATE - PATCH)
@@ -180,8 +166,6 @@ describe('Restful-booker API - CRUD completo e robusto', () => {
       .expectJsonLike({
         firstname: 'Maria'
       });
-    
-    console.log('✅ Reserva atualizada (PATCH) - ID:', bookingId);
   });
 
   // Teste 8: Busca reservas filtrando pelo nome do hóspede
@@ -194,8 +178,6 @@ describe('Restful-booker API - CRUD completo e robusto', () => {
       .expectJsonSchema({
         type: 'array'
       });
-    
-    console.log('✅ Busca por firstname executada');
   });
 
   // Teste 9: Busca reservas filtrando pelo status de pagamento do depósito
@@ -208,14 +190,10 @@ describe('Restful-booker API - CRUD completo e robusto', () => {
       .expectJsonSchema({
         type: 'array'
       });
-    
-    console.log('✅ Busca por depositpaid executada');
   });
 
   // Teste 10: Remove a reserva criada do sistema (DELETE)
   it('Deve deletar a reserva (se criada)', async () => {
-    // Se criamos uma nova reserva, deletamos ela
-    // Se estamos usando uma existente, apenas testamos a capacidade de deletar
     const idToDelete = createdBookingId || bookingId;
     expect(idToDelete).toBeDefined();
     
@@ -227,11 +205,5 @@ describe('Restful-booker API - CRUD completo e robusto', () => {
         'Cookie': `token=${token}`
       })
       .expectStatus(StatusCodes.CREATED);
-    
-    if (createdBookingId) {
-      console.log('✅ Nova reserva deletada - ID:', createdBookingId);
-    } else {
-      console.log('✅ Reserva existente deletada - ID:', idToDelete);
-    }
   });
 });
